@@ -18,7 +18,6 @@
 - **Currently Studying**: Informatics (Development) at the University of Oslo (UiO), 1st year.
 
 ## 🤝 Collaborative Work and Community Contributions
-- **Collaboration**: Worked with servers like Rewindbox, Backbox, ScuffleMC.
 - **Community Projects**: Actively contributed to various community projects and server improvements.
 
 ## 🌟 Soft Skills
