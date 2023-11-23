@@ -1,3 +1,5 @@
+![MasterHead](https://alpha-centauri-production.s3.amazonaws.com/uploads/content/174/header_image/header.jpg)
+
 <h1 align="center">Hi 👋, I'm Skripters</h1>
 <h3 align="center">A passionate developer from Norway</h3>
 <img align="right" alt="Coding" width="100" src="https://docs.skriptlang.org/assets/icon.png">
