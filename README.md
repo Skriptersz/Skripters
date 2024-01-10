@@ -8,6 +8,8 @@
 
 # Developer Profile Notebook
 
+🚀 🚀 ## Developer **@LeoneMC**
+
 ## 🚀 Experience
 - **4+ Years in Server Development**: Deep expertise in crafting server-side applications.
 - **Owned and Operated Popular Minehut Servers**: Successfully managed servers like SkMine, Slap, MinesPvP, showcasing operational and development skills.
