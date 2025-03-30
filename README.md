@@ -8,7 +8,7 @@
 
 # Developer Profile Notebook
 
-🚀 🚀 ## Developer **@LeoneMC**
+🚀 🚀 ## Previous Developer **@LeoneMC** **@Zyptrik** **@RewindBox**
 
 ## 🚀 Experience
 - **4+ Years in Server Development**: Deep expertise in crafting server-side applications.
