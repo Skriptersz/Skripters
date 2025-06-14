@@ -3187,11 +3187,11 @@
       });
 
       // Cursor hover
-      document
-        .querySelectorAll(
-          "a, button, .btn-liquid, .liquid-card, .stat-item, .service-item, .control-option"
-        )
-        .forEach((el) => {
+        document
+          .querySelectorAll(
+            "a, button, .btn-liquid, .liquid-card, .stat-item, .service-item, .control-option"
+          )
+          .forEach((el) => {
           el.addEventListener("mouseenter", () =>
             cursor.classList.add("hover")
           );
@@ -3199,6 +3199,17 @@
             cursor.classList.remove("hover")
           );
         });
+
+      /* --------- HJELPEFUNKSJON FOR SCROLL -------- */
+      /* FIX: universell scroll-hjelper som erstatter scrollIntoView */
+      function scrollToTarget(element, offset = 80) {
+        if (!element) return;
+        const y =
+          element.getBoundingClientRect().top +
+          window.pageYOffset -
+          offset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
 
       // Package builder functionality
       function toggleService(card) {
@@ -3335,118 +3346,55 @@
           rush: "Rush",
         };
 
-        // Update links and add auto-fill functionality
+        /* FIX: ny lokal funksjon som scroller korrekt */
+        const goToContact = () =>
+          scrollToTarget(document.querySelector("#kontakt"));
+
         const emailBtn = document.getElementById("sendQuoteEmail");
         const whatsappBtn = document.getElementById("sendQuoteWhatsApp");
 
         emailBtn.onclick = function (e) {
           e.preventDefault();
+          if (selectedServices.size === 0) return;
 
-          if (selectedServices.size > 0) {
-            // Auto-fill contact form
-            autoFillContactForm(
-              services,
-              complexityLabels[complexity],
-              priorityLabels[priority],
-              total
-            );
-
-            // Simple scroll to contact section
-            setTimeout(() => {
-              const contactSection = document.querySelector("#kontakt");
-              if (contactSection) {
-                contactSection.scrollIntoView({
-                  behavior: "smooth",
-                  block: "center",
-                });
-              }
-            }, 100);
-          }
+          autoFillContactForm(
+            services,
+            complexityLabels[complexity],
+            priorityLabels[priority],
+            total
+          );
+          goToContact(); /* FIX */
         };
 
         whatsappBtn.onclick = function (e) {
           e.preventDefault();
+          if (selectedServices.size === 0) return;
 
-          if (selectedServices.size > 0) {
-            // Auto-fill contact form
-            autoFillContactForm(
-              services,
-              complexityLabels[complexity],
-              priorityLabels[priority],
-              total
+          autoFillContactForm(
+            services,
+            complexityLabels[complexity],
+            priorityLabels[priority],
+            total
+          );
+          goToContact(); /* FIX */
+
+          const whatsappMessage = encodeURIComponent(
+`Hei! Jeg vil gjerne ha et tilbud fra Webnet:
+
+Tjenester: ${services}
+Kompleksitet: ${complexityLabels[complexity]}
+Prioritet: ${priorityLabels[priority]}
+Estimert: ${total.toLocaleString()} kr`
+          );
+          setTimeout(() => {
+            window.open(
+              `https://wa.me/4795033843?text=${whatsappMessage}`,
+              "_blank"
             );
-
-            // Simple scroll to contact section
-            setTimeout(() => {
-              const contactSection = document.querySelector("#kontakt");
-              if (contactSection) {
-                contactSection.scrollIntoView({
-                  behavior: "smooth",
-                  block: "center",
-                });
-              }
-            }, 100);
-
-            // Prepare WhatsApp message
-            const whatsappMessage = `Hei! Jeg vil gjerne ha et tilbud fra Webnet:\n\nTjenester: ${services}\nKompleksitet: ${complexityLabels[complexity]}\nPrioritet: ${priorityLabels[priority]}\nEstimert: ${total.toLocaleString()} kr`;
-
-            setTimeout(() => {
-              // Use Web Share API if available
-              if (navigator.share) {
-                navigator
-                  .share({ text: whatsappMessage })
-                  .catch(() => {
-                    window.open(
-                      `https://wa.me/4795033843?text=${encodeURIComponent(whatsappMessage)}`,
-                      "_blank"
-                    );
-                  });
-              } else {
-                window.open(
-                  `https://wa.me/4795033843?text=${encodeURIComponent(whatsappMessage)}`,
-                  "_blank"
-                );
-              }
-            }, 1000);
-          }
+          }, 800);
         };
       }
 
-      function scrollToContact() {
-        const contactSection = document.querySelector("#kontakt");
-        if (contactSection) {
-          // Calculate the actual position in the smooth scroll content
-          const rect = contactSection.getBoundingClientRect();
-          const smoothContent = document.querySelector("#smooth-content");
-          const currentTransform = smoothContent.style.transform;
-
-          // Get current offset from transform
-          let currentOffset = 0;
-          if (currentTransform && currentTransform.includes("translateY")) {
-            const match = currentTransform.match(
-              /translateY\((-?\d+(?:\.\d+)?)px\)/
-            );
-            if (match) {
-              currentOffset = -parseFloat(match[1]);
-            }
-          }
-
-          // Calculate target scroll position
-          const targetScroll = currentOffset + rect.top - 100; // 100px offset for nav
-
-          // Disable smooth scroll temporarily and use native scroll
-          const originalEase = ease;
-          ease = 1; // Make it instant
-
-          // Set target for smooth scroll
-          target = Math.max(0, targetScroll);
-
-          // Re-enable smooth scroll after a brief moment
-          setTimeout(() => {
-            ease = originalEase;
-          }, 100);
-        }
-      }
 
       function autoFillContactForm(services, complexity, priority, total) {
         const messageField = document.getElementById("message");
@@ -3467,8 +3415,8 @@ Takk!`;
         messageField.style.background = "rgba(37, 99, 235, 0.1)";
         messageField.style.border = "2px solid var(--accent)";
 
-        // Add a subtle animation to draw attention
-        messageField.scrollIntoView({ behavior: "smooth", block: "center" });
+        /* FIX: bruk hjelpescroll i stedet for scrollIntoView */
+        scrollToTarget(messageField, 120);
 
         // Reset styling after a few seconds
         setTimeout(() => {
