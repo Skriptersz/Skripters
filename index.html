@@ -1,0 +1,3877 @@
+<!DOCTYPE html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WEBNET — Digital Eksellense Designet</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        cursor: none;
+      }
+
+      :root {
+        --bg: #fafafa;
+        --dark: #0a0a0a;
+        --accent: #2563eb;
+        --secondary: #059669;
+        --tertiary: #dc2626;
+        --light-gray: #f8fafc;
+        --text-gray: #64748b;
+      }
+
+      html {
+        font-size: 14px;
+        overscroll-behavior: none;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg);
+        color: var(--dark);
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-weight: 300;
+      }
+
+      /* Smooth scroll container */
+      #smooth-wrapper {
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #smooth-content {
+        position: relative;
+        will-change: transform;
+      }
+
+      /* Noise texture overlay */
+      .noise {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0.02;
+        z-index: 9999;
+        background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgbnVtT2N0YXZlcz0iMTAiLz48ZmVDb2xvck1hdHJpeCB2YWx1ZXM9IjAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDEgMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMSIvPjwvc3ZnPg==");
+      }
+
+      /* Custom cursor */
+      #cursor {
+        position: fixed;
+        width: 48px;
+        height: 48px;
+        border: 2px solid rgba(37, 99, 235, 0.6);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 10000;
+        transform: translate(-50%, -50%);
+        transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease;
+        background: rgba(37, 99, 235, 0.1);
+      }
+
+      #cursor.hover {
+        width: 80px;
+        height: 80px;
+        border-color: rgba(37, 99, 235, 0.8);
+        border-width: 3px;
+        background: rgba(37, 99, 235, 0.15);
+      }
+
+      #cursor-dot {
+        position: fixed;
+        width: 6px;
+        height: 6px;
+        background: var(--accent);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 10001;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+      }
+
+      /* Navigation */
+      .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 1.5rem 2.5rem;
+        z-index: 1000;
+        backdrop-filter: blur(20px);
+        background: rgba(250, 250, 250, 0.8);
+        border-bottom: 1px solid rgba(10, 10, 10, 0.05);
+      }
+
+      .nav-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      /* Logo */
+      .logo {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      .logo img {
+        height: 45px;
+        width: auto;
+        transition: all 0.3s ease;
+      }
+
+      .logo:hover img {
+        opacity: 0.8;
+        transform: scale(1.05);
+      }
+
+      .nav-menu {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+      }
+
+      .nav-menu a {
+        color: var(--dark);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 400;
+        position: relative;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: inline-block;
+      }
+
+      .nav-menu a::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: var(--accent);
+        transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      .nav-menu a:hover::after {
+        width: 100%;
+      }
+
+      /* Hero */
+      .hero {
+        height: 90vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        padding-top: 5rem;
+      }
+
+      .hero-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        opacity: 0.6;
+      }
+
+      .hero-content {
+        position: relative;
+        z-index: 5;
+        padding: 0 2.5rem;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .hero-title {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2.5rem, 8vw, 6rem);
+        font-weight: 700;
+        line-height: 0.9;
+        letter-spacing: -0.02em;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .hero-title .word {
+        display: block;
+        overflow: hidden;
+        width: 100%;
+      }
+
+      .hero-title .char {
+        display: inline-block;
+        transform: translateY(110%);
+        transition: transform 1.2s cubic-bezier(0.76, 0, 0.24, 1);
+      }
+
+      .hero-title .char.animate {
+        transform: translateY(0);
+      }
+
+      .hero-subtitle {
+        font-size: 1.2rem;
+        font-weight: 300;
+        margin-bottom: 2.5rem;
+        opacity: 0;
+        color: var(--text-gray);
+        transform: translateY(30px);
+        transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.8s;
+      }
+
+      .hero-subtitle.animate {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .hero-cta {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1s;
+      }
+
+      .hero-cta.animate {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .btn-liquid {
+        display: inline-block;
+        padding: 1rem 2.5rem;
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--bg);
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+        border-radius: 50px;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transform-style: preserve-3d;
+        z-index: 1;
+      }
+
+      .btn-liquid-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--accent), var(--secondary));
+        border-radius: 50px;
+        transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        z-index: -1;
+      }
+
+      .btn-liquid:hover .btn-liquid-bg {
+        transform: scale(1.1);
+      }
+
+      .btn-liquid span:last-child {
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Sections */
+      .section {
+        padding: 6rem 2.5rem;
+        position: relative;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .section-header {
+        margin-bottom: 4rem;
+        text-align: center;
+      }
+
+      .section-label {
+        font-family: "Inter", sans-serif;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+        margin-bottom: 1rem;
+        font-weight: 500;
+      }
+
+      .section-title {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 600;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        overflow: hidden;
+      }
+
+      .section-title span {
+        display: inline-block;
+        transform: translateY(110%);
+        transition: transform 1s cubic-bezier(0.76, 0, 0.24, 1);
+      }
+
+      .section-title.animate span {
+        transform: translateY(0);
+      }
+
+      /* Liquid grid */
+      .liquid-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 4rem;
+      }
+
+      .liquid-card {
+        position: relative;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(20px);
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        overflow: hidden;
+        transform: translateY(40px);
+        opacity: 0;
+        transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        will-change: transform;
+      }
+
+      .liquid-card.animate {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .liquid-card:nth-child(1) {
+        transition-delay: 0s;
+      }
+      .liquid-card:nth-child(2) {
+        transition-delay: 0.1s;
+      }
+      .liquid-card:nth-child(3) {
+        transition-delay: 0.2s;
+      }
+      .liquid-card:nth-child(4) {
+        transition-delay: 0.3s;
+      }
+      .liquid-card:nth-child(5) {
+        transition-delay: 0.4s;
+      }
+      .liquid-card:nth-child(6) {
+        transition-delay: 0.5s;
+      }
+
+      .liquid-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.8s ease;
+        pointer-events: none;
+      }
+
+      .liquid-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+      }
+
+      .liquid-card:hover::before {
+        opacity: 0.03;
+      }
+
+      .liquid-card h3 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      .liquid-card:hover h3 {
+        transform: translateX(3px);
+      }
+
+      .liquid-card p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text-gray);
+        font-weight: 300;
+      }
+
+      /* Package Builder */
+      .package-builder {
+        background: linear-gradient(
+          135deg,
+          var(--light-gray) 0%,
+          rgba(255, 255, 255, 0.8) 100%
+        );
+        border-radius: 2rem;
+        padding: 3rem;
+        margin: 4rem 0;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(20px);
+      }
+
+      .guarantee-banner {
+        background: linear-gradient(135deg, var(--secondary), #047857);
+        color: white;
+        padding: 1.5rem 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .guarantee-banner::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 70%
+        );
+        animation: shimmer 3s infinite;
+      }
+
+      @keyframes shimmer {
+        0%,
+        100% {
+          transform: translateX(-100%) translateY(-100%) rotate(0deg);
+        }
+        50% {
+          transform: translateX(100%) translateY(100%) rotate(180deg);
+        }
+      }
+
+      .guarantee-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .guarantee-text {
+        font-size: 0.95rem;
+        opacity: 0.9;
+      }
+
+      .package-grid {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 3rem;
+        margin-top: 2rem;
+      }
+
+      .services-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .service-item {
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 0.8rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .service-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.1);
+        border-color: var(--accent);
+      }
+
+      .service-item.selected {
+        background: rgba(37, 99, 235, 0.05);
+        border-color: var(--accent);
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.15);
+      }
+
+      .service-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.8rem;
+      }
+
+      .checkbox {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--accent);
+        border-radius: 4px;
+        margin-right: 12px;
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .checkbox.checked {
+        background: var(--accent);
+      }
+
+      .checkbox.checked::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+      }
+
+      .service-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--dark);
+      }
+
+      .service-description {
+        color: var(--text-gray);
+        font-size: 0.85rem;
+        margin-bottom: 0.8rem;
+        line-height: 1.4;
+      }
+
+      .service-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      /* Control section */
+      .controls-section {
+        margin-top: 2rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+      }
+
+      .control-group {
+        background: rgba(255, 255, 255, 0.7);
+        padding: 1.5rem;
+        border-radius: 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+      }
+
+      .control-label {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--dark);
+      }
+
+      .control-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .control-option {
+        padding: 0.8rem 1rem;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .control-option:hover {
+        border-color: var(--accent);
+        background: rgba(37, 99, 235, 0.05);
+      }
+
+      .control-option.selected {
+        background: rgba(37, 99, 235, 0.1);
+        border-color: var(--accent);
+      }
+
+      .control-option .option-title {
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+      }
+
+      .control-option .option-description {
+        font-size: 0.8rem;
+        color: var(--text-gray);
+      }
+
+      .control-option .option-price {
+        position: absolute;
+        top: 0.8rem;
+        right: 1rem;
+        font-weight: 600;
+        color: var(--accent);
+        font-size: 0.9rem;
+      }
+
+      .package-summary {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        height: fit-content;
+        position: sticky;
+        top: 6rem;
+      }
+
+      .summary-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+      }
+
+      .selected-services {
+        margin-bottom: 1.5rem;
+        min-height: 100px;
+      }
+
+      .no-services {
+        text-align: center;
+        color: var(--text-gray);
+        font-style: italic;
+        font-size: 0.9rem;
+      }
+
+      .service-line {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid rgba(100, 116, 139, 0.1);
+      }
+
+      .timeline-info {
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 0.8rem;
+        padding: 1.2rem;
+        margin: 1.5rem 0;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+      }
+
+      .timeline-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.6rem;
+      }
+
+      .timeline-label {
+        color: var(--text-gray);
+        font-size: 0.85rem;
+      }
+
+      .timeline-value {
+        font-weight: 600;
+        color: var(--accent);
+        font-size: 0.85rem;
+      }
+
+      .total-section {
+        background: linear-gradient(
+          135deg,
+          rgba(37, 99, 235, 0.05),
+          rgba(5, 150, 105, 0.05)
+        );
+        border-radius: 0.8rem;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border: 1px solid rgba(37, 99, 235, 0.1);
+      }
+
+      .total-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .total-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+      }
+
+      .total-note {
+        font-size: 0.8rem;
+        color: var(--text-gray);
+      }
+
+      .cta-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+
+      .cta-button {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--accent), var(--secondary));
+        color: white;
+        border: none;
+        border-radius: 0.8rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+        display: block;
+      }
+
+      .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+      }
+
+      .cta-button.secondary {
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+
+      .cta-button.secondary:hover {
+        background: rgba(37, 99, 235, 0.05);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.2);
+      }
+
+      /* Contact Section */
+      .contact-section {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        padding: 6rem 2.5rem;
+      }
+
+      .contact-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+      }
+
+      .contact-content h2 {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+      }
+
+      .contact-description {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+      }
+
+      .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .contact-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(37, 99, 235, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 0.2rem;
+      }
+
+      .contact-details h4 {
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        font-size: 1rem;
+      }
+
+      .contact-details p {
+        opacity: 0.8;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .contact-form {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2rem;
+        border-radius: 1rem;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
+        color: white;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .form-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      .form-submit {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, var(--accent), var(--secondary));
+        color: white;
+        border: none;
+        border-radius: 0.8rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .form-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+      }
+
+      /* Marquee */
+      .marquee {
+        padding: 3rem 0;
+        background: var(--dark);
+        color: var(--bg);
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .marquee-inner {
+        display: flex;
+        animation: marquee 30s linear infinite;
+        width: 200%;
+      }
+
+      .marquee-text {
+        font-family: "Playfair Display", serif;
+        font-size: 4rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: -0.01em;
+        padding: 0 2rem;
+        white-space: nowrap;
+      }
+
+      @keyframes marquee {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+
+      /* Stats */
+      .stats {
+        padding: 6rem 2.5rem;
+        background: var(--dark);
+        color: var(--bg);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 3rem;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .stat-item {
+        text-align: center;
+        opacity: 0;
+        transform: translateY(40px);
+        transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      .stat-item.animate {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .stat-number {
+        font-family: "Playfair Display", serif;
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+      }
+
+      .stat-number span {
+        display: inline-block;
+      }
+
+      .stat-label {
+        font-size: 0.95rem;
+        opacity: 0.8;
+        font-weight: 300;
+      }
+
+      /* Philosophy */
+      .philosophy {
+        padding: 6rem 2.5rem;
+        background: var(--dark);
+        color: var(--bg);
+      }
+
+      .philosophy-content {
+        max-width: 1000px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .philosophy-text {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(1.5rem, 4vw, 2.5rem);
+        font-weight: 400;
+        line-height: 1.4;
+        letter-spacing: -0.01em;
+      }
+
+      .philosophy-text .highlight {
+        font-weight: 600;
+        color: var(--secondary);
+        position: relative;
+      }
+
+      /* Footer */
+      .footer {
+        background: linear-gradient(135deg, var(--dark) 0%, #1a1a1a 100%);
+        color: var(--bg);
+        padding: 4rem 2.5rem 2rem;
+        position: relative;
+      }
+
+      .footer-content {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .footer-main {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 4rem;
+        margin-bottom: 3rem;
+      }
+
+      .footer-brand {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .footer-logo {
+        margin-bottom: 1.5rem;
+      }
+
+      .footer-logo img {
+        height: 40px;
+        width: auto;
+        filter: brightness(0) invert(1);
+      }
+
+      .footer-description {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 2rem;
+        font-weight: 300;
+      }
+
+      .footer-social {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .social-link {
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+
+      .social-link:hover {
+        background: var(--accent);
+        transform: translateY(-2px);
+      }
+
+      .footer-column h4 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: white;
+      }
+
+      .footer-links {
+        list-style: none;
+      }
+
+      .footer-links li {
+        margin-bottom: 0.8rem;
+      }
+
+      .footer-links a {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 300;
+        transition: all 0.3s ease;
+      }
+
+      .footer-links a:hover {
+        color: white;
+        transform: translateX(3px);
+      }
+
+      .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .footer-bottom-links {
+        display: flex;
+        gap: 2rem;
+      }
+
+      .footer-bottom-links a {
+        color: rgba(255, 255, 255, 0.5);
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      .footer-bottom-links a:hover {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      /* Loading screen */
+      .loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--bg) 0%, #f0f0f0 100%);
+        z-index: 10002;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.8s ease, visibility 0.8s ease;
+      }
+
+      .loader.hide {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .loader-logo {
+        margin-bottom: 2rem;
+        opacity: 0;
+        transform: scale(0.8);
+        animation: logoReveal 1.5s cubic-bezier(0.76, 0, 0.24, 1) 0.3s forwards;
+      }
+
+      .loader-logo img {
+        height: 80px;
+        width: auto;
+      }
+
+      @keyframes logoReveal {
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .loader-text {
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 400;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-gray);
+        opacity: 0;
+        animation: textReveal 1s ease 1s forwards;
+      }
+
+      @keyframes textReveal {
+        to {
+          opacity: 1;
+        }
+      }
+
+      .loader-progress {
+        width: 200px;
+        height: 2px;
+        background: rgba(37, 99, 235, 0.1);
+        border-radius: 1px;
+        margin-top: 2rem;
+        overflow: hidden;
+      }
+
+      .loader-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), var(--secondary));
+        border-radius: 1px;
+        transform: translateX(-100%);
+        animation: progressReveal 2s ease 0.5s forwards;
+      }
+
+      @keyframes progressReveal {
+        to {
+          transform: translateX(0);
+        }
+      }
+
+      /* Scroll progress */
+      .scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--secondary));
+        transform-origin: left;
+        transform: scaleX(0);
+        z-index: 9999;
+        transition: transform 0.1s ease;
+      }
+
+      /* Mobile menu */
+      .menu-toggle {
+        display: none;
+        position: fixed;
+        top: 1.5rem;
+        right: 2.5rem;
+        width: 32px;
+        height: 24px;
+        z-index: 1001;
+        cursor: pointer;
+      }
+
+      .menu-toggle span {
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        background: var(--dark);
+        transition: all 0.3s ease;
+      }
+
+      .menu-toggle span:nth-child(1) {
+        top: 0;
+      }
+      .menu-toggle span:nth-child(2) {
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .menu-toggle span:nth-child(3) {
+        bottom: 0;
+      }
+
+      .menu-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translateY(12px);
+      }
+      .menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+      }
+      .menu-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translateY(-12px);
+      }
+
+      .mobile-menu {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100vh;
+        background: var(--bg);
+        transform: translateX(100%);
+        transition: transform 0.6s cubic-bezier(0.76, 0, 0.24, 1);
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mobile-menu.active {
+        transform: translateX(0);
+      }
+
+      .mobile-menu-inner {
+        text-align: center;
+      }
+
+      .mobile-menu-inner a {
+        display: block;
+        font-family: "Playfair Display", serif;
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--dark);
+        text-decoration: none;
+        margin: 1.5rem 0;
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.5s ease;
+      }
+
+      .mobile-menu.active .mobile-menu-inner a {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .mobile-menu.active .mobile-menu-inner a:nth-child(1) {
+        transition-delay: 0.1s;
+      }
+      .mobile-menu.active .mobile-menu-inner a:nth-child(2) {
+        transition-delay: 0.2s;
+      }
+      .mobile-menu.active .mobile-menu-inner a:nth-child(3) {
+        transition-delay: 0.3s;
+      }
+      .mobile-menu.active .mobile-menu-inner a:nth-child(4) {
+        transition-delay: 0.4s;
+      }
+
+      /* Mobile */
+      @media (max-width: 768px) {
+        html {
+          font-size: 16px;
+        }
+        .nav-menu {
+          display: none;
+        }
+        .menu-toggle {
+          display: block;
+        }
+        .hero-title {
+          font-size: 3rem;
+        }
+        .liquid-grid {
+          grid-template-columns: 1fr;
+        }
+        .package-grid {
+          grid-template-columns: 1fr;
+        }
+        .services-list {
+          grid-template-columns: 1fr;
+        }
+        .controls-section {
+          grid-template-columns: 1fr;
+        }
+        .contact-container {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+        .marquee-text {
+          font-size: 2.5rem;
+        }
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 2rem;
+        }
+        .stat-number {
+          font-size: 2.5rem;
+        }
+        .footer-main {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+        .footer-bottom {
+          flex-direction: column;
+          gap: 1rem;
+        }
+        #cursor,
+        #cursor-dot {
+          display: none;
+        }
+        * {
+          cursor: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loader -->
+    <div class="loader" id="loader">
+      <div class="loader-logo">
+        <img src="https://i.postimg.cc/FspZ19p3/image.png" alt="Webnet Logo" />
+      </div>
+      <div class="loader-text">Laster digital eksellense</div>
+      <div class="loader-progress">
+        <div class="loader-progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- Scroll Progress -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- Noise texture -->
+    <div class="noise"></div>
+
+    <!-- Custom cursor -->
+    <div id="cursor"></div>
+    <div id="cursor-dot"></div>
+
+    <!-- Smooth scroll wrapper -->
+    <div id="smooth-wrapper">
+      <div id="smooth-content">
+        <!-- Navigation -->
+        <nav class="nav">
+          <div class="nav-inner">
+            <a href="#" class="logo">
+              <img
+                src="https://i.postimg.cc/FspZ19p3/image.png"
+                alt="Webnet Logo"
+              />
+            </a>
+            <ul class="nav-menu">
+              <li><a href="#tjenester">Tjenester</a></li>
+              <li><a href="#pakkebygger">Pakkebygger</a></li>
+              <li><a href="#filosofi">Filosofi</a></li>
+              <li><a href="#kontakt">Kontakt</a></li>
+            </ul>
+            <div class="menu-toggle" id="menuToggle">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+          <div class="mobile-menu-inner">
+            <a href="#tjenester">Tjenester</a>
+            <a href="#pakkebygger">Pakkebygger</a>
+            <a href="#filosofi">Filosofi</a>
+            <a href="#kontakt">Kontakt</a>
+          </div>
+        </div>
+
+        <!-- Hero -->
+        <section class="hero">
+          <canvas class="hero-canvas" id="heroCanvas"></canvas>
+          <div class="hero-content">
+            <h1 class="hero-title">
+              <div class="word">Digital</div>
+              <div class="word">Eksellense</div>
+            </h1>
+            <p class="hero-subtitle">
+              Vi skaper fremtidens digitale opplevelser med presisjon og
+              eleganse
+            </p>
+            <div class="hero-cta">
+              <a href="#pakkebygger" class="btn-liquid">
+                <span class="btn-liquid-bg"></span>
+                <span>Bygg Din Løsning</span>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <!-- Services -->
+        <section class="section" id="tjenester">
+          <div class="section-header">
+            <p class="section-label">Våre Tjenester</p>
+            <h2 class="section-title">
+              <span>Utover Forventninger</span>
+            </h2>
+          </div>
+
+          <!-- Creative Services Layout -->
+          <div
+            class="services-creative-container"
+            style="margin-top: 4rem; position: relative"
+          >
+            <!-- Background decorative elements -->
+            <div class="services-bg-decoration"></div>
+
+            <!-- Services in creative asymmetric layout -->
+            <div class="services-asymmetric-grid">
+              <!-- Row 1 -->
+              <div class="service-card-creative service-card-1" data-delay="0">
+                <div class="service-icon-creative">
+                  <svg viewBox="0 0 100 100" class="service-svg">
+                    <defs>
+                      <linearGradient
+                        id="grad1"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" style="stop-color: #667eea" />
+                        <stop offset="100%" style="stop-color: #764ba2" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M20,20 L80,20 L80,60 L50,80 L20,60 Z"
+                      fill="url(#grad1)"
+                      opacity="0.8"
+                    />
+                    <circle cx="35" cy="35" r="3" fill="white" />
+                    <circle cx="65" cy="35" r="3" fill="white" />
+                    <rect
+                      x="30"
+                      y="45"
+                      width="40"
+                      height="2"
+                      fill="white"
+                      opacity="0.7"
+                    />
+                  </svg>
+                </div>
+                <div class="service-content-creative">
+                  <h3>Premium Webutvikling</h3>
+                  <p>
+                    Skreddersydde nettsider og webapplikasjoner som kombinerer
+                    estetikk med høy ytelse. Fra responsive design til komplekse
+                    systemer.
+                  </p>
+                  <div class="service-tech-stack">
+                    <span>React</span>
+                    <span>Next.js</span>
+                    <span>Node.js</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="service-card-creative service-card-2"
+                data-delay="0.2"
+              >
+                <div class="service-icon-creative">
+                  <svg viewBox="0 0 100 100" class="service-svg">
+                    <defs>
+                      <linearGradient
+                        id="grad2"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" style="stop-color: #f093fb" />
+                        <stop offset="100%" style="stop-color: #f5576c" />
+                      </linearGradient>
+                    </defs>
+                    <rect
+                      x="15"
+                      y="25"
+                      width="70"
+                      height="45"
+                      rx="8"
+                      fill="url(#grad2)"
+                      opacity="0.8"
+                    />
+                    <circle cx="30" cy="40" r="8" fill="white" opacity="0.9" />
+                    <rect
+                      x="45"
+                      y="35"
+                      width="30"
+                      height="3"
+                      fill="white"
+                      opacity="0.7"
+                    />
+                    <rect
+                      x="45"
+                      y="42"
+                      width="20"
+                      height="3"
+                      fill="white"
+                      opacity="0.7"
+                    />
+                    <rect
+                      x="25"
+                      y="55"
+                      width="50"
+                      height="2"
+                      fill="white"
+                      opacity="0.6"
+                    />
+                  </svg>
+                </div>
+                <div class="service-content-creative">
+                  <h3>UI/UX Design</h3>
+                  <p>
+                    Brukersentrerte designløsninger som skaper engasjement og
+                    konverterer besøkende til lojale kunder.
+                  </p>
+                  <div class="service-tech-stack">
+                    <span>Figma</span>
+                    <span>Adobe XD</span>
+                    <span>Prototyping</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row 2 -->
+              <div
+                class="service-card-creative service-card-3"
+                data-delay="0.4"
+              >
+                <div class="service-icon-creative">
+                  <svg viewBox="0 0 100 100" class="service-svg">
+                    <defs>
+                      <linearGradient
+                        id="grad3"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" style="stop-color: #4facfe" />
+                        <stop offset="100%" style="stop-color: #00f2fe" />
+                      </linearGradient>
+                    </defs>
+                    <rect
+                      x="20"
+                      y="30"
+                      width="60"
+                      height="40"
+                      rx="5"
+                      fill="url(#grad3)"
+                      opacity="0.8"
+                    />
+                    <rect
+                      x="25"
+                      y="35"
+                      width="15"
+                      height="10"
+                      fill="white"
+                      opacity="0.9"
+                    />
+                    <rect
+                      x="45"
+                      y="35"
+                      width="15"
+                      height="10"
+                      fill="white"
+                      opacity="0.7"
+                    />
+                    <rect
+                      x="65"
+                      y="35"
+                      width="10"
+                      height="10"
+                      fill="white"
+                      opacity="0.5"
+                    />
+                    <rect
+                      x="25"
+                      y="50"
+                      width="30"
+                      height="3"
+                      fill="white"
+                      opacity="0.8"
+                    />
+                    <rect
+                      x="25"
+                      y="57"
+                      width="25"
+                      height="3"
+                      fill="white"
+                      opacity="0.6"
+                    />
+                  </svg>
+                </div>
+                <div class="service-content-creative">
+                  <h3>E-handel Plattformer</h3>
+                  <p>
+                    Kraftfulle nettbutikker med sømløs betalingsintegrasjon og
+                    analysetools som driver salg.
+                  </p>
+                  <div class="service-tech-stack">
+                    <span>Shopify</span>
+                    <span>WooCommerce</span>
+                    <span>Stripe</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="service-card-creative service-card-4"
+                data-delay="0.6"
+              >
+                <div class="service-icon-creative">
+                  <svg viewBox="0 0 100 100" class="service-svg">
+                    <defs>
+                      <linearGradient
+                        id="grad4"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" style="stop-color: #43e97b" />
+                        <stop offset="100%" style="stop-color: #38f9d7" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M25,60 Q25,25 50,25 Q75,25 75,60 L70,65 L55,50 L45,50 L30,65 Z"
+                      fill="url(#grad4)"
+                      opacity="0.8"
+                    />
+                    <circle cx="40" cy="42" r="2" fill="white" />
+                    <circle cx="60" cy="42" r="2" fill="white" />
+                    <path
+                      d="M35,52 Q50,62 65,52"
+                      stroke="white"
+                      stroke-width="2"
+                      fill="none"
+                      opacity="0.8"
+                    />
+                  </svg>
+                </div>
+                <div class="service-content-creative">
+                  <h3>Digital Strategi</h3>
+                  <p>
+                    Helhetlige digitale løsninger fra SEO-optimalisering til
+                    komplett markedsføringsstrategi.
+                  </p>
+                  <div class="service-tech-stack">
+                    <span>SEO</span>
+                    <span>Analytics</span>
+                    <span>Growth</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row 3 -->
+              <div
+                class="service-card-creative service-card-5"
+                data-delay="0.8"
+              >
+                <div class="service-icon-creative">
+                  <svg viewBox="0 0 100 100" class="service-svg">
+                    <defs>
+                      <linearGradient
+                        id="grad5"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" style="stop-color: #fa709a" />
+                        <stop offset="100%" style="stop-color: #fee140" />
+                      </linearGradient>
+                    </defs>
+                    <rect
+                      x="25"
+                      y="20"
+                      width="50"
+                      height="60"
+                      rx="3"
+                      fill="url(#grad5)"
+                      opacity="0.8"
+                    />
+                    <rect
+                      x="30"
+                      y="30"
+                      width="40"
+                      height="3"
+                      fill="white"
+                      opacity="0.9"
+                    />
+                    <rect
+                      x="30"
+                      y="37"
+                      width="40"
+                      height="3"
+                      fill="white"
+                      opacity="0.7"
+                    />
+                    <rect
+                      x="30"
+                      y="44"
+                      width="30"
+                      height="3"
+                      fill="white"
+                      opacity="0.7"
+                    />
+                    <rect
+                      x="30"
+                      y="55"
+                      width="25"
+                      height="3"
+                      fill="white"
+                      opacity="0.6"
+                    />
+                    <rect
+                      x="30"
+                      y="62"
+                      width="35"
+                      height="3"
+                      fill="white"
+                      opacity="0.6"
+                    />
+                    <circle cx="65" cy="65" r="6" fill="white" opacity="0.8" />
+                  </svg>
+                </div>
+                <div class="service-content-creative">
+                  <h3>Enterprise Systemer</h3>
+                  <p>
+                    Skalerbare bedriftsløsninger med fokus på sikkerhet, ytelse
+                    og integrasjon som støtter vekst.
+                  </p>
+                  <div class="service-tech-stack">
+                    <span>Cloud</span>
+                    <span>API</span>
+                    <span>Security</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="service-card-creative service-card-6"
+                data-delay="1.0"
+              >
+                <div class="service-icon-creative">
+                  <svg viewBox="0 0 100 100" class="service-svg">
+                    <defs>
+                      <linearGradient
+                        id="grad6"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" style="stop-color: #a8edea" />
+                        <stop offset="100%" style="stop-color: #fed6e3" />
+                      </linearGradient>
+                    </defs>
+                    <circle
+                      cx="50"
+                      cy="40"
+                      r="25"
+                      fill="url(#grad6)"
+                      opacity="0.8"
+                    />
+                    <path
+                      d="M35,35 L45,45 L65,25"
+                      stroke="white"
+                      stroke-width="3"
+                      fill="none"
+                      opacity="0.9"
+                    />
+                    <rect
+                      x="30"
+                      y="60"
+                      width="40"
+                      height="15"
+                      rx="7"
+                      fill="url(#grad6)"
+                      opacity="0.6"
+                    />
+                    <circle cx="40" cy="67" r="2" fill="white" />
+                    <circle cx="60" cy="67" r="2" fill="white" />
+                  </svg>
+                </div>
+                <div class="service-content-creative">
+                  <h3>Support & Vedlikehold</h3>
+                  <p>
+                    Kontinuerlig support og vedlikehold som sikrer optimal
+                    ytelse og oppdateringer.
+                  </p>
+                  <div class="service-tech-stack">
+                    <span>24/7</span>
+                    <span>Monitoring</span>
+                    <span>Updates</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <style>
+            .services-creative-container {
+              position: relative;
+              min-height: 800px;
+            }
+
+            .services-bg-decoration {
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: radial-gradient(
+                  circle at 20% 30%,
+                  rgba(102, 126, 234, 0.1) 0%,
+                  transparent 50%
+                ),
+                radial-gradient(
+                  circle at 80% 70%,
+                  rgba(118, 75, 162, 0.1) 0%,
+                  transparent 50%
+                ),
+                radial-gradient(
+                  circle at 50% 90%,
+                  rgba(67, 233, 123, 0.05) 0%,
+                  transparent 40%
+                );
+              pointer-events: none;
+            }
+
+            .services-asymmetric-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+              gap: 1.5rem;
+              max-width: 1000px;
+              margin: 0 auto;
+              position: relative;
+              z-index: 2;
+            }
+
+            .service-card-creative {
+              background: rgba(255, 255, 255, 0.95);
+              backdrop-filter: blur(20px);
+              border-radius: 1.5rem;
+              border: 1px solid rgba(255, 255, 255, 0.8);
+              padding: 2rem;
+              position: relative;
+              overflow: hidden;
+              transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+              opacity: 0;
+              transform: translateY(40px) scale(0.95);
+              box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+              height: 100%;
+              display: flex;
+              flex-direction: column;
+            }
+
+            .service-card-creative.animate {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+
+            /* Remove asymmetric positioning - all cards aligned */
+            .service-card-1,
+            .service-card-2,
+            .service-card-3,
+            .service-card-4,
+            .service-card-5,
+            .service-card-6 {
+              margin-top: 0 !important;
+            }
+
+            .service-card-creative::before {
+              content: "";
+              position: absolute;
+              top: -2px;
+              left: -2px;
+              right: -2px;
+              bottom: -2px;
+              background: linear-gradient(
+                45deg,
+                rgba(102, 126, 234, 0.3),
+                rgba(118, 75, 162, 0.3),
+                rgba(67, 233, 123, 0.3),
+                rgba(240, 147, 251, 0.3)
+              );
+              border-radius: 1.7rem;
+              opacity: 0;
+              z-index: -1;
+              transition: opacity 0.6s ease;
+            }
+
+            .service-card-creative:hover::before {
+              opacity: 1;
+            }
+
+            .service-card-creative:hover {
+              transform: translateY(-6px) scale(1.02);
+              box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            }
+
+            .service-icon-creative {
+              width: 60px;
+              height: 60px;
+              margin: 0 auto 1.5rem;
+              position: relative;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+            }
+
+            .service-svg {
+              width: 45px;
+              height: 45px;
+              transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+              filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.1));
+            }
+
+            .service-card-creative:hover .service-svg {
+              transform: scale(1.1) rotate(5deg);
+            }
+
+            .service-content-creative {
+              flex: 1;
+              display: flex;
+              flex-direction: column;
+            }
+
+            .service-content-creative h3 {
+              font-family: "Playfair Display", serif;
+              font-size: 1.2rem;
+              font-weight: 600;
+              margin-bottom: 1rem;
+              text-align: center;
+              color: var(--dark);
+              transition: color 0.4s ease;
+            }
+
+            .service-card-creative:hover h3 {
+              color: var(--accent);
+            }
+
+            .service-content-creative p {
+              font-size: 0.9rem;
+              line-height: 1.5;
+              color: var(--text-gray);
+              text-align: center;
+              margin-bottom: 1.5rem;
+              flex: 1;
+            }
+
+            .service-tech-stack {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 0.4rem;
+              justify-content: center;
+              margin-top: auto;
+            }
+
+            .service-tech-stack span {
+              background: linear-gradient(
+                135deg,
+                rgba(102, 126, 234, 0.1),
+                rgba(118, 75, 162, 0.1)
+              );
+              color: var(--accent);
+              padding: 0.3rem 0.8rem;
+              border-radius: 15px;
+              font-size: 0.75rem;
+              font-weight: 500;
+              border: 1px solid rgba(102, 126, 234, 0.2);
+              transition: all 0.3s ease;
+              position: relative;
+              overflow: hidden;
+            }
+
+            .service-tech-stack span::before {
+              content: "";
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.4),
+                transparent
+              );
+              transition: left 0.6s ease;
+            }
+
+            .service-card-creative:hover .service-tech-stack span::before {
+              left: 100%;
+            }
+
+            .service-card-creative:hover .service-tech-stack span {
+              background: linear-gradient(
+                135deg,
+                rgba(102, 126, 234, 0.2),
+                rgba(118, 75, 162, 0.2)
+              );
+              border-color: rgba(102, 126, 234, 0.4);
+              transform: translateY(-1px);
+            }
+
+            /* Mobile responsiveness */
+            @media (max-width: 768px) {
+              .services-asymmetric-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+              }
+
+              .service-card-1,
+              .service-card-2,
+              .service-card-3,
+              .service-card-4,
+              .service-card-5,
+              .service-card-6 {
+                margin-top: 0 !important;
+              }
+
+              .service-card-creative {
+                padding: 2rem;
+              }
+            }
+          </style>
+        </section>
+
+        <!-- Pricing Transparency -->
+        <section class="section">
+          <div class="pricing-transparency-section">
+            <!-- Background Pattern -->
+            <div class="pricing-bg-pattern"></div>
+
+            <div class="pricing-container">
+              <div class="pricing-header">
+                <span class="pricing-label">Transparent Prising</span>
+                <h2 class="pricing-title">Kvalitet til Rettferdig Pris</h2>
+                <p class="pricing-subtitle">
+                  Vi tror på åpenhet og rettferdige priser som reflekterer
+                  verdien vi leverer
+                </p>
+              </div>
+
+              <div class="pricing-grid">
+                <div class="pricing-card pricing-card-1">
+                  <div class="pricing-card-icon">
+                    <svg viewBox="0 0 100 100" class="pricing-svg">
+                      <defs>
+                        <linearGradient
+                          id="pricing-grad1"
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="100%"
+                        >
+                          <stop offset="0%" style="stop-color: #667eea" />
+                          <stop offset="100%" style="stop-color: #764ba2" />
+                        </linearGradient>
+                      </defs>
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="35"
+                        fill="url(#pricing-grad1)"
+                        opacity="0.2"
+                      />
+                      <path
+                        d="M35,35 L50,25 L65,35 L65,65 L35,65 Z"
+                        fill="url(#pricing-grad1)"
+                        opacity="0.8"
+                      />
+                      <circle
+                        cx="50"
+                        cy="45"
+                        r="8"
+                        fill="white"
+                        opacity="0.9"
+                      />
+                      <rect
+                        x="42"
+                        y="55"
+                        width="16"
+                        height="2"
+                        fill="white"
+                        opacity="0.8"
+                      />
+                    </svg>
+                  </div>
+                  <h3>Transparente Priser</h3>
+                  <p>
+                    Vi viser alltid våre priser på forhånd. Ingen skjulte
+                    kostnader eller overraskelser i sluttregningen.
+                  </p>
+                  <div class="pricing-feature-list">
+                    <div class="pricing-feature">• Detaljerte tilbud</div>
+                    <div class="pricing-feature">• Ingen ekstra gebyrer</div>
+                    <div class="pricing-feature">• Klare avtaler</div>
+                  </div>
+                </div>
+
+                <div class="pricing-card pricing-card-2">
+                  <div class="pricing-card-icon">
+                    <svg viewBox="0 0 100 100" class="pricing-svg">
+                      <defs>
+                        <linearGradient
+                          id="pricing-grad2"
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="100%"
+                        >
+                          <stop offset="0%" style="stop-color: #4facfe" />
+                          <stop offset="100%" style="stop-color: #00f2fe" />
+                        </linearGradient>
+                      </defs>
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="35"
+                        fill="url(#pricing-grad2)"
+                        opacity="0.2"
+                      />
+                      <path
+                        d="M25,60 L50,30 L75,60 L60,70 L40,70 Z"
+                        fill="url(#pricing-grad2)"
+                        opacity="0.8"
+                      />
+                      <circle cx="50" cy="50" r="5" fill="white" />
+                      <path d="M45,45 L55,45" stroke="white" stroke-width="2" />
+                      <path d="M45,55 L55,55" stroke="white" stroke-width="2" />
+                    </svg>
+                  </div>
+                  <h3>Konkurransedyktige Priser</h3>
+                  <p>
+                    30-40% lavere enn gjennomsnittlige byråpriser i Norge, uten
+                    å gå på kompromiss med kvalitet.
+                  </p>
+                  <div class="pricing-feature-list">
+                    <div class="pricing-feature">• Markedsanalyse</div>
+                    <div class="pricing-feature">• Beste verdi for pengene</div>
+                    <div class="pricing-feature">• Effektiv arbeidsmetode</div>
+                  </div>
+                </div>
+
+                <div class="pricing-card pricing-card-3">
+                  <div class="pricing-card-icon">
+                    <svg viewBox="0 0 100 100" class="pricing-svg">
+                      <defs>
+                        <linearGradient
+                          id="pricing-grad3"
+                          x1="0%"
+                          y1="0%"
+                          x2="100%"
+                          y2="100%"
+                        >
+                          <stop offset="0%" style="stop-color: #43e97b" />
+                          <stop offset="100%" style="stop-color: #38f9d7" />
+                        </linearGradient>
+                      </defs>
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="35"
+                        fill="url(#pricing-grad3)"
+                        opacity="0.2"
+                      />
+                      <rect
+                        x="30"
+                        y="35"
+                        width="40"
+                        height="30"
+                        rx="5"
+                        fill="url(#pricing-grad3)"
+                        opacity="0.8"
+                      />
+                      <path
+                        d="M40,45 L47,52 L60,39"
+                        stroke="white"
+                        stroke-width="3"
+                        fill="none"
+                      />
+                      <circle
+                        cx="50"
+                        cy="25"
+                        r="8"
+                        fill="url(#pricing-grad3)"
+                        opacity="0.6"
+                      />
+                    </svg>
+                  </div>
+                  <h3>Premium Kvalitet</h3>
+                  <p>
+                    Høyeste kvalitet med garanti. Vi refunderer 50% hvis vi ikke
+                    leverer som avtalt innen tidsfristen.
+                  </p>
+                  <div class="pricing-feature-list">
+                    <div class="pricing-feature">• Kvalitetsgaranti</div>
+                    <div class="pricing-feature">• Profesjonell utførelse</div>
+                    <div class="pricing-feature">• Omfattende testing</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pricing-comparison">
+                <div class="comparison-content">
+                  <div class="comparison-text">
+                    <span class="comparison-highlight"
+                      >Sammenligning med markedet:</span
+                    >
+                    Mens mange norske webbyråer tar
+                    <span class="price-competitor">50-80k kr</span> for en
+                    standard nettside, leverer vi samme kvalitet for
+                    <span class="price-ours">25-35k kr</span>. Vår effektive
+                    arbeidsmetode og digitale fokus lar oss tilby premium
+                    tjenester til en brøkdel av prisen.
+                  </div>
+                  <div class="guarantee-badge">
+                    <div class="guarantee-icon">
+                      <svg viewBox="0 0 100 100">
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="3"
+                        />
+                        <path
+                          d="M35,50 L45,60 L65,40"
+                          stroke="currentColor"
+                          stroke-width="4"
+                          fill="none"
+                        />
+                      </svg>
+                    </div>
+                    <div class="guarantee-text">
+                      <strong>Lynanbeitet Garanti</strong>
+                      <span>50% refusjon ved forsinket levering</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <style>
+            .pricing-transparency-section {
+              background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+              border-radius: 3rem;
+              margin: 4rem 0;
+              padding: 5rem 3rem;
+              position: relative;
+              overflow: hidden;
+            }
+
+            .pricing-bg-pattern {
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background-image: radial-gradient(
+                  circle at 25% 25%,
+                  rgba(59, 130, 246, 0.1) 0%,
+                  transparent 50%
+                ),
+                radial-gradient(
+                  circle at 75% 75%,
+                  rgba(16, 185, 129, 0.1) 0%,
+                  transparent 50%
+                ),
+                linear-gradient(
+                  135deg,
+                  transparent 40%,
+                  rgba(139, 92, 246, 0.05) 50%,
+                  transparent 60%
+                );
+              pointer-events: none;
+            }
+
+            .pricing-container {
+              max-width: 1200px;
+              margin: 0 auto;
+              position: relative;
+              z-index: 2;
+            }
+
+            .pricing-header {
+              text-align: center;
+              margin-bottom: 4rem;
+              opacity: 0;
+              transform: translateY(30px);
+              animation: fadeInUp 1s ease-out forwards 0.2s;
+            }
+
+            .pricing-label {
+              display: inline-block;
+              background: linear-gradient(
+                135deg,
+                rgba(59, 130, 246, 0.1),
+                rgba(139, 92, 246, 0.1)
+              );
+              color: var(--accent);
+              padding: 0.5rem 1.5rem;
+              border-radius: 2rem;
+              font-size: 0.9rem;
+              font-weight: 500;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              border: 1px solid rgba(59, 130, 246, 0.2);
+              margin-bottom: 1.5rem;
+            }
+
+            .pricing-title {
+              font-family: "Playfair Display", serif;
+              font-size: clamp(2.5rem, 6vw, 4rem);
+              font-weight: 700;
+              color: var(--dark);
+              margin-bottom: 1rem;
+              line-height: 1.2;
+            }
+
+            .pricing-subtitle {
+              font-size: 1.1rem;
+              color: var(--text-gray);
+              max-width: 600px;
+              margin: 0 auto;
+              line-height: 1.6;
+            }
+
+            .pricing-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+              gap: 2rem;
+              margin-bottom: 4rem;
+            }
+
+            .pricing-card {
+              background: rgba(255, 255, 255, 0.9);
+              backdrop-filter: blur(20px);
+              border-radius: 2rem;
+              padding: 2.5rem;
+              border: 1px solid rgba(255, 255, 255, 0.8);
+              position: relative;
+              overflow: hidden;
+              transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+              opacity: 0;
+              transform: translateY(40px);
+            }
+
+            .pricing-card-1 {
+              animation: fadeInUp 1s ease-out forwards 0.4s;
+            }
+            .pricing-card-2 {
+              animation: fadeInUp 1s ease-out forwards 0.6s;
+            }
+            .pricing-card-3 {
+              animation: fadeInUp 1s ease-out forwards 0.8s;
+            }
+
+            .pricing-card::before {
+              content: "";
+              position: absolute;
+              top: -2px;
+              left: -2px;
+              right: -2px;
+              bottom: -2px;
+              background: linear-gradient(
+                135deg,
+                rgba(59, 130, 246, 0.2),
+                rgba(139, 92, 246, 0.2),
+                rgba(16, 185, 129, 0.2)
+              );
+              border-radius: 2rem;
+              opacity: 0;
+              z-index: -1;
+              transition: opacity 0.5s ease;
+            }
+
+            .pricing-card:hover::before {
+              opacity: 1;
+            }
+
+            .pricing-card:hover {
+              transform: translateY(-8px) scale(1.02);
+              box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            }
+
+            .pricing-card-icon {
+              width: 80px;
+              height: 80px;
+              margin: 0 auto 2rem;
+              position: relative;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+
+            .pricing-svg {
+              width: 60px;
+              height: 60px;
+              transition: transform 0.5s ease;
+              filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+            }
+
+            .pricing-card:hover .pricing-svg {
+              transform: scale(1.1) rotate(5deg);
+            }
+
+            .pricing-card h3 {
+              font-family: "Playfair Display", serif;
+              font-size: 1.4rem;
+              font-weight: 600;
+              color: var(--dark);
+              text-align: center;
+              margin-bottom: 1rem;
+              transition: color 0.3s ease;
+            }
+
+            .pricing-card:hover h3 {
+              color: var(--accent);
+            }
+
+            .pricing-card p {
+              color: var(--text-gray);
+              line-height: 1.6;
+              text-align: center;
+              margin-bottom: 1.5rem;
+              font-size: 0.95rem;
+            }
+
+            .pricing-feature-list {
+              display: flex;
+              flex-direction: column;
+              gap: 0.5rem;
+            }
+
+            .pricing-feature {
+              color: var(--text-gray);
+              font-size: 0.9rem;
+              padding-left: 1rem;
+              position: relative;
+            }
+
+            .pricing-feature::before {
+              content: "";
+              position: absolute;
+              left: 0;
+              top: 50%;
+              transform: translateY(-50%);
+              width: 4px;
+              height: 4px;
+              background: var(--accent);
+              border-radius: 50%;
+            }
+
+            .pricing-comparison {
+              background: rgba(255, 255, 255, 0.95);
+              backdrop-filter: blur(20px);
+              border-radius: 2rem;
+              padding: 3rem;
+              border: 1px solid rgba(255, 255, 255, 0.9);
+              position: relative;
+              opacity: 0;
+              transform: translateY(40px);
+              animation: fadeInUp 1s ease-out forwards 1s;
+            }
+
+            .comparison-content {
+              display: grid;
+              grid-template-columns: 2fr 1fr;
+              gap: 3rem;
+              align-items: center;
+            }
+
+            .comparison-text {
+              font-size: 1.1rem;
+              line-height: 1.7;
+              color: var(--text-gray);
+            }
+
+            .comparison-highlight {
+              font-weight: 600;
+              color: var(--dark);
+              display: block;
+              margin-bottom: 0.5rem;
+            }
+
+            .price-competitor {
+              background: linear-gradient(
+                135deg,
+                rgba(239, 68, 68, 0.1),
+                rgba(220, 38, 38, 0.1)
+              );
+              color: #dc2626;
+              padding: 0.2rem 0.5rem;
+              border-radius: 0.5rem;
+              font-weight: 600;
+            }
+
+            .price-ours {
+              background: linear-gradient(
+                135deg,
+                rgba(16, 185, 129, 0.1),
+                rgba(5, 150, 105, 0.1)
+              );
+              color: #059669;
+              padding: 0.2rem 0.5rem;
+              border-radius: 0.5rem;
+              font-weight: 600;
+            }
+
+            .guarantee-badge {
+              display: flex;
+              align-items: center;
+              gap: 1rem;
+              background: linear-gradient(
+                135deg,
+                rgba(16, 185, 129, 0.1),
+                rgba(5, 150, 105, 0.1)
+              );
+              padding: 1.5rem;
+              border-radius: 1.5rem;
+              border: 1px solid rgba(16, 185, 129, 0.2);
+            }
+
+            .guarantee-icon {
+              width: 40px;
+              height: 40px;
+              color: #059669;
+              flex-shrink: 0;
+            }
+
+            .guarantee-text {
+              display: flex;
+              flex-direction: column;
+            }
+
+            .guarantee-text strong {
+              color: #059669;
+              font-weight: 600;
+              margin-bottom: 0.2rem;
+            }
+
+            .guarantee-text span {
+              font-size: 0.9rem;
+              color: var(--text-gray);
+            }
+
+            @keyframes fadeInUp {
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+
+            @media (max-width: 768px) {
+              .pricing-transparency-section {
+                padding: 3rem 1.5rem;
+                margin: 2rem 0;
+              }
+
+              .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+              }
+
+              .comparison-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+              }
+
+              .guarantee-badge {
+                flex-direction: column;
+                text-align: center;
+              }
+            }
+          </style>
+        </section>
+
+        <!-- Package Builder -->
+        <section class="section" id="pakkebygger">
+          <div class="section-header">
+            <p class="section-label">Pakkebygger</p>
+            <h2 class="section-title">
+              <span>Bygg Din Digitale Løsning</span>
+            </h2>
+          </div>
+
+          <div class="package-builder">
+            <div class="guarantee-banner">
+              <div class="guarantee-title">Lynanbeitet Garanti</div>
+              <div class="guarantee-text">
+                50% refusjon hvis vi ikke leverer innen avtalt tidsfrist!
+              </div>
+            </div>
+
+            <div class="package-grid">
+              <div class="services-section">
+                <div class="services-list">
+                  <div
+                    class="service-item"
+                    data-price="25000"
+                    data-service="web-dev"
+                  >
+                    <div class="service-header">
+                      <div class="checkbox"></div>
+                      <div class="service-title">Webutvikling</div>
+                    </div>
+                    <div class="service-description">
+                      Skreddersydde nettsider og webapplikasjoner
+                    </div>
+                    <div class="service-price">25 000 kr</div>
+                  </div>
+
+                  <div
+                    class="service-item"
+                    data-price="18000"
+                    data-service="ui-ux"
+                  >
+                    <div class="service-header">
+                      <div class="checkbox"></div>
+                      <div class="service-title">UI/UX Design</div>
+                    </div>
+                    <div class="service-description">
+                      Profesjonell brukergrensesnitt design
+                    </div>
+                    <div class="service-price">18 000 kr</div>
+                  </div>
+
+                  <div
+                    class="service-item"
+                    data-price="35000"
+                    data-service="ecommerce"
+                  >
+                    <div class="service-header">
+                      <div class="checkbox"></div>
+                      <div class="service-title">E-handel</div>
+                    </div>
+                    <div class="service-description">
+                      Komplett nettbutikk med betalingsintegrasjon
+                    </div>
+                    <div class="service-price">35 000 kr</div>
+                  </div>
+
+                  <div
+                    class="service-item"
+                    data-price="15000"
+                    data-service="seo"
+                  >
+                    <div class="service-header">
+                      <div class="checkbox"></div>
+                      <div class="service-title">
+                        SEO & Digital Markedsføring
+                      </div>
+                    </div>
+                    <div class="service-description">
+                      Søkemotoroptimalisering og digital strategi
+                    </div>
+                    <div class="service-price">15 000 kr</div>
+                  </div>
+
+                  <div
+                    class="service-item"
+                    data-price="45000"
+                    data-service="enterprise"
+                  >
+                    <div class="service-header">
+                      <div class="checkbox"></div>
+                      <div class="service-title">Enterprise Løsning</div>
+                    </div>
+                    <div class="service-description">
+                      Avanserte bedriftssystemer og integrasjoner
+                    </div>
+                    <div class="service-price">45 000 kr</div>
+                  </div>
+
+                  <div
+                    class="service-item"
+                    data-price="8000"
+                    data-service="maintenance"
+                  >
+                    <div class="service-header">
+                      <div class="checkbox"></div>
+                      <div class="service-title">Vedlikehold</div>
+                    </div>
+                    <div class="service-description">
+                      Årlig vedlikehold og support
+                    </div>
+                    <div class="service-price">8 000 kr/år</div>
+                  </div>
+                </div>
+
+                <div class="controls-section">
+                  <div class="control-group">
+                    <div class="control-label">Prosjektets Kompleksitet</div>
+                    <div class="control-options">
+                      <div
+                        class="control-option"
+                        data-complexity="simple"
+                        data-multiplier="0.8"
+                      >
+                        <div class="option-title">Enkel</div>
+                        <div class="option-description">
+                          Grunnleggende funksjonalitet
+                        </div>
+                        <div class="option-price">-20%</div>
+                      </div>
+                      <div
+                        class="control-option selected"
+                        data-complexity="standard"
+                        data-multiplier="1.0"
+                      >
+                        <div class="option-title">Standard</div>
+                        <div class="option-description">
+                          Balansert funksjonalitet og design
+                        </div>
+                        <div class="option-price">Standard</div>
+                      </div>
+                      <div
+                        class="control-option"
+                        data-complexity="advanced"
+                        data-multiplier="1.5"
+                      >
+                        <div class="option-title">Avansert</div>
+                        <div class="option-description">
+                          Omfattende funksjonalitet
+                        </div>
+                        <div class="option-price">+50%</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="control-group">
+                    <div class="control-label">Leveringsprioritet</div>
+                    <div class="control-options">
+                      <div
+                        class="control-option"
+                        data-priority="normal"
+                        data-multiplier="1.0"
+                      >
+                        <div class="option-title">Normal</div>
+                        <div class="option-description">
+                          Standard leveringstid
+                        </div>
+                        <div class="option-price">Standard</div>
+                      </div>
+                      <div
+                        class="control-option selected"
+                        data-priority="priority"
+                        data-multiplier="1.3"
+                      >
+                        <div class="option-title">Prioritet</div>
+                        <div class="option-description">Raskere levering</div>
+                        <div class="option-price">+30%</div>
+                      </div>
+                      <div
+                        class="control-option"
+                        data-priority="rush"
+                        data-multiplier="1.8"
+                      >
+                        <div class="option-title">Rush</div>
+                        <div class="option-description">Ekspressleverering</div>
+                        <div class="option-price">+80%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="package-summary">
+                <h3 class="summary-title">Din Pakke</h3>
+
+                <div id="selectedServices" class="selected-services">
+                  <div class="no-services">
+                    Velg tjenester for å se sammendrag
+                  </div>
+                </div>
+
+                <div class="timeline-info">
+                  <div class="timeline-row">
+                    <span class="timeline-label">Kompleksitet:</span>
+                    <span class="timeline-value" id="complexityDisplay"
+                      >Standard</span
+                    >
+                  </div>
+                  <div class="timeline-row">
+                    <span class="timeline-label">Prioritet:</span>
+                    <span class="timeline-value" id="priorityDisplay"
+                      >Prioritet</span
+                    >
+                  </div>
+                  <div class="timeline-row">
+                    <span class="timeline-label">Estimert leveringstid:</span>
+                    <span class="timeline-value" id="deliveryTime"
+                      >3-4 uker</span
+                    >
+                  </div>
+                </div>
+
+                <div class="total-section">
+                  <div class="total-title">Estimert Total</div>
+                  <div class="total-amount" id="totalAmount">0 kr</div>
+                  <div class="total-note">
+                    Endelig pris kan variere basert på detaljerte krav
+                  </div>
+                </div>
+
+                <div class="cta-buttons">
+                  <a href="#" id="sendQuoteEmail" class="cta-button"
+                    >Send Tilbud på E-post</a
+                  >
+                  <a
+                    href="#"
+                    id="sendQuoteWhatsApp"
+                    class="cta-button secondary"
+                    >Send via WhatsApp</a
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Marquee -->
+        <div class="marquee">
+          <div class="marquee-inner">
+            <span class="marquee-text"
+              >Design • Utvikle • Lansere • Vokse •
+            </span>
+            <span class="marquee-text"
+              >Design • Utvikle • Lansere • Vokse •
+            </span>
+            <span class="marquee-text"
+              >Design • Utvikle • Lansere • Vokse •
+            </span>
+            <span class="marquee-text"
+              >Design • Utvikle • Lansere • Vokse •
+            </span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <section class="stats">
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-number" data-value="150">
+                <span>0</span><span>+</span>
+              </div>
+              <div class="stat-label">Prosjekter Levert</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number" data-value="99.8">
+                <span>0</span><span>%</span>
+              </div>
+              <div class="stat-label">Kundetilfredshet</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number" data-value="48">
+                <span>0</span><span>t</span>
+              </div>
+              <div class="stat-label">Raskeste Levering</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number" data-value="5">
+                <span>0</span><span>.0</span>
+              </div>
+              <div class="stat-label">Gjennomsnittlig Rating</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Philosophy -->
+        <section class="philosophy" id="filosofi">
+          <div class="philosophy-content">
+            <p class="philosophy-text">
+              Vi tror at hvert digitalt prosjekt fortjener
+              <span class="highlight">perfeksjon</span>,
+              <span class="highlight">innovasjon</span> og
+              <span class="highlight">personlighet</span>. Vår misjon er å skape
+              digitale opplevelser som ikke bare imponerer – de leverer
+              resultater.
+            </p>
+          </div>
+        </section>
+
+        <!-- Contact -->
+        <section class="contact-section" id="kontakt">
+          <div class="contact-container">
+            <div class="contact-content">
+              <h2>La Oss Snakke</h2>
+              <p class="contact-description">
+                Fortell oss om ditt prosjekt, så hjelper vi deg med å finne den
+                beste løsningen. Vi svarer vanligvis innen 24 timer på
+                hverdager.
+              </p>
+
+              <div class="contact-info">
+                <div class="contact-item">
+                  <div class="contact-icon">@</div>
+                  <div class="contact-details">
+                    <h4>E-post</h4>
+                    <p>webnetfinne@outlook.com</p>
+                  </div>
+                </div>
+
+                <div class="contact-item">
+                  <div class="contact-icon">📞</div>
+                  <div class="contact-details">
+                    <h4>Telefon</h4>
+                    <p>+47 950 33 843</p>
+                  </div>
+                </div>
+
+                <div class="contact-item">
+                  <div class="contact-icon">📍</div>
+                  <div class="contact-details">
+                    <h4>Kontorlokasjon</h4>
+                    <p>
+                      Oslo, Norge<br />Vi jobber primært digitalt og møter
+                      kunder etter avtale
+                    </p>
+                  </div>
+                </div>
+
+                <div class="contact-item">
+                  <div class="contact-icon">🕒</div>
+                  <div class="contact-details">
+                    <h4>Arbeidstider</h4>
+                    <p>
+                      Mandag - Fredag: 09:00 - 17:00<br />Vi svarer vanligvis
+                      innen 24 timer på hverdager
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="contact-form">
+              <div class="form-group">
+                <label for="name">Navn *</label>
+                <input
+                  type="text"
+                  id="name"
+                  class="form-input"
+                  placeholder="Ditt navn"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="email">E-post *</label>
+                <input
+                  type="email"
+                  id="email"
+                  class="form-input"
+                  placeholder="din.epost@eksempel.no"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="company">Bedrift</label>
+                <input
+                  type="text"
+                  id="company"
+                  class="form-input"
+                  placeholder="Firma navn (valgfritt)"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="message">Melding *</label>
+                <textarea
+                  id="message"
+                  class="form-input form-textarea"
+                  placeholder="Fortell oss om ditt prosjekt eller still oss et spørsmål"
+                  required
+                ></textarea>
+              </div>
+
+              <button type="submit" class="form-submit" id="contactFormSubmit">
+                Send Henvendelse
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+          <div class="footer-content">
+            <div class="footer-main">
+              <div class="footer-brand">
+                <div class="footer-logo">
+                  <img
+                    src="https://i.postimg.cc/FspZ19p3/image.png"
+                    alt="Webnet Logo"
+                  />
+                </div>
+                <p class="footer-description">
+                  Vi skaper digitale opplevelser som driver resultater. Fra
+                  konsept til lansering, vi er din partner for digital suksess.
+                </p>
+                <div class="footer-social">
+                  <a href="#" class="social-link">IG</a>
+                  <a href="#" class="social-link">LI</a>
+                  <a href="#" class="social-link">GH</a>
+                  <a href="#" class="social-link">BE</a>
+                </div>
+              </div>
+
+              <div class="footer-column">
+                <h4>Tjenester</h4>
+                <ul class="footer-links">
+                  <li><a href="#tjenester">Webutvikling</a></li>
+                  <li><a href="#tjenester">UI/UX Design</a></li>
+                  <li><a href="#tjenester">E-handel</a></li>
+                  <li><a href="#tjenester">Digital Strategi</a></li>
+                </ul>
+              </div>
+
+              <div class="footer-column">
+                <h4>Selskap</h4>
+                <ul class="footer-links">
+                  <li><a href="#filosofi">Om Oss</a></li>
+                  <li><a href="#kontakt">Kontakt</a></li>
+                  <li><a href="#">Karriere</a></li>
+                  <li><a href="#">Blog</a></li>
+                </ul>
+              </div>
+
+              <div class="footer-column">
+                <h4>Support</h4>
+                <ul class="footer-links">
+                  <li><a href="#">Hjelp</a></li>
+                  <li><a href="#">Dokumentasjon</a></li>
+                  <li><a href="#">Status</a></li>
+                  <li><a href="#">API</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="footer-bottom">
+              <div>&copy; 2025 Webnet. Alle rettigheter reservert.</div>
+              <div class="footer-bottom-links">
+                <a href="#">Personvern</a>
+                <a href="#">Vilkår</a>
+                <a href="#">Cookies</a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <script>
+      // Mouse tracking
+      let mouseX = 0;
+      let mouseY = 0;
+
+      document.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+
+      // Package builder state
+      let selectedServices = new Set();
+      let complexity = "standard";
+      let priority = "priority";
+      let complexityMultiplier = 1.0;
+      let priorityMultiplier = 1.3;
+
+      // Smooth scroll
+      let current = 0;
+      let target = 0;
+      let ease = 0.075;
+
+      const smoothWrapper = document.querySelector("#smooth-wrapper");
+      const smoothContent = document.querySelector("#smooth-content");
+
+      function setBodyHeight() {
+        const contentHeight = smoothContent.getBoundingClientRect().height;
+        document.body.style.height = `${contentHeight}px`;
+      }
+
+      function smoothScroll() {
+        target = Math.min(
+          window.scrollY,
+          document.body.scrollHeight - window.innerHeight
+        );
+        current += (target - current) * ease;
+        current = Math.max(0, current); // Prevent negative values
+
+        smoothContent.style.transform = `translateY(${-current}px)`;
+        requestAnimationFrame(smoothScroll);
+      }
+
+      // Custom cursor
+      const cursor = document.getElementById("cursor");
+      const cursorDot = document.getElementById("cursor-dot");
+
+      document.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        cursorDot.style.left = mouseX + "px";
+        cursorDot.style.top = mouseY + "px";
+
+        requestAnimationFrame(() => {
+          cursor.style.left = mouseX + "px";
+          cursor.style.top = mouseY + "px";
+        });
+      });
+
+      // Cursor hover
+      document
+        .querySelectorAll(
+          "a, button, .btn-liquid, .liquid-card, .stat-item, .service-item, .control-option"
+        )
+        .forEach((el) => {
+          el.addEventListener("mouseenter", () =>
+            cursor.classList.add("hover")
+          );
+          el.addEventListener("mouseleave", () =>
+            cursor.classList.remove("hover")
+          );
+        });
+
+      // Package builder functionality
+      function toggleService(card) {
+        const serviceId = card.dataset.service;
+        const checkbox = card.querySelector(".checkbox");
+
+        if (selectedServices.has(serviceId)) {
+          selectedServices.delete(serviceId);
+          card.classList.remove("selected");
+          checkbox.classList.remove("checked");
+        } else {
+          selectedServices.add(serviceId);
+          card.classList.add("selected");
+          checkbox.classList.add("checked");
+        }
+
+        updateSummary();
+      }
+
+      function selectComplexity(option) {
+        document
+          .querySelectorAll("[data-complexity]")
+          .forEach((el) => el.classList.remove("selected"));
+        option.classList.add("selected");
+        complexity = option.dataset.complexity;
+        complexityMultiplier = parseFloat(option.dataset.multiplier);
+        updateSummary();
+      }
+
+      function selectPriority(option) {
+        document
+          .querySelectorAll("[data-priority]")
+          .forEach((el) => el.classList.remove("selected"));
+        option.classList.add("selected");
+        priority = option.dataset.priority;
+        priorityMultiplier = parseFloat(option.dataset.multiplier);
+        updateSummary();
+      }
+
+      function updateSummary() {
+        const container = document.getElementById("selectedServices");
+
+        if (selectedServices.size === 0) {
+          container.innerHTML =
+            '<div class="no-services">Velg tjenester for å se sammendrag</div>';
+          document.getElementById("totalAmount").textContent = "0 kr";
+          return;
+        }
+
+        let html = "";
+        let total = 0;
+
+        selectedServices.forEach((serviceId) => {
+          const card = document.querySelector(`[data-service="${serviceId}"]`);
+          const title = card.querySelector(".service-title").textContent;
+          const basePrice = parseInt(card.dataset.price);
+          const adjustedPrice = Math.round(
+            basePrice * complexityMultiplier * priorityMultiplier
+          );
+          total += adjustedPrice;
+
+          html += `
+                    <div class="service-line">
+                        <span>${title}</span>
+                        <span>${adjustedPrice.toLocaleString()} kr</span>
+                    </div>
+                `;
+        });
+
+        container.innerHTML = html;
+        document.getElementById("totalAmount").textContent =
+          total.toLocaleString() + " kr";
+
+        // Update displays
+        const complexityLabels = {
+          simple: "Enkel",
+          standard: "Standard",
+          advanced: "Avansert",
+        };
+        const priorityLabels = {
+          normal: "Normal",
+          priority: "Prioritet",
+          rush: "Rush",
+        };
+
+        document.getElementById("complexityDisplay").textContent =
+          complexityLabels[complexity];
+        document.getElementById("priorityDisplay").textContent =
+          priorityLabels[priority];
+
+        // Update delivery time
+        const deliveryTimes = {
+          normal: {
+            simple: "2-3 uker",
+            standard: "3-4 uker",
+            advanced: "5-6 uker",
+          },
+          priority: {
+            simple: "1-2 uker",
+            standard: "2-3 uker",
+            advanced: "3-4 uker",
+          },
+          rush: {
+            simple: "3-5 dager",
+            standard: "1-2 uker",
+            advanced: "2-3 uker",
+          },
+        };
+
+        document.getElementById("deliveryTime").textContent =
+          deliveryTimes[priority][complexity];
+
+        updateQuoteLinks(total);
+      }
+
+      function updateQuoteLinks(total) {
+        const services = Array.from(selectedServices)
+          .map((serviceId) => {
+            const card = document.querySelector(
+              `[data-service="${serviceId}"]`
+            );
+            return card.querySelector(".service-title").textContent;
+          })
+          .join(", ");
+
+        const complexityLabels = {
+          simple: "Enkel",
+          standard: "Standard",
+          advanced: "Avansert",
+        };
+        const priorityLabels = {
+          normal: "Normal",
+          priority: "Prioritet",
+          rush: "Rush",
+        };
+
+        // Update links and add auto-fill functionality
+        const emailBtn = document.getElementById("sendQuoteEmail");
+        const whatsappBtn = document.getElementById("sendQuoteWhatsApp");
+
+        emailBtn.onclick = function (e) {
+          e.preventDefault();
+
+          if (selectedServices.size > 0) {
+            // Auto-fill contact form
+            autoFillContactForm(
+              services,
+              complexityLabels[complexity],
+              priorityLabels[priority],
+              total
+            );
+
+            // Simple scroll to contact section
+            setTimeout(() => {
+              const contactSection = document.querySelector("#kontakt");
+              if (contactSection) {
+                contactSection.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              }
+            }, 100);
+          }
+        };
+
+        whatsappBtn.onclick = function (e) {
+          e.preventDefault();
+
+          if (selectedServices.size > 0) {
+            // Auto-fill contact form
+            autoFillContactForm(
+              services,
+              complexityLabels[complexity],
+              priorityLabels[priority],
+              total
+            );
+
+            // Simple scroll to contact section
+            setTimeout(() => {
+              const contactSection = document.querySelector("#kontakt");
+              if (contactSection) {
+                contactSection.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              }
+            }, 100);
+
+            // Also open WhatsApp after scrolling
+            const whatsappMessage =
+              encodeURIComponent(`Hei! Jeg vil gjerne ha et tilbud fra Webnet:
+
+Tjenester: ${services}
+Kompleksitet: ${complexityLabels[complexity]}
+Prioritet: ${priorityLabels[priority]}
+Estimert: ${total.toLocaleString()} kr`);
+
+            setTimeout(() => {
+              window.open(
+                `https://wa.me/4795033843?text=${whatsappMessage}`,
+                "_blank"
+              );
+            }, 1000);
+          }
+        };
+      }
+
+      function scrollToContact() {
+        const contactSection = document.querySelector("#kontakt");
+        if (contactSection) {
+          // Calculate the actual position in the smooth scroll content
+          const rect = contactSection.getBoundingClientRect();
+          const smoothContent = document.querySelector("#smooth-content");
+          const currentTransform = smoothContent.style.transform;
+
+          // Get current offset from transform
+          let currentOffset = 0;
+          if (currentTransform && currentTransform.includes("translateY")) {
+            const match = currentTransform.match(
+              /translateY\((-?\d+(?:\.\d+)?)px\)/
+            );
+            if (match) {
+              currentOffset = -parseFloat(match[1]);
+            }
+          }
+
+          // Calculate target scroll position
+          const targetScroll = currentOffset + rect.top - 100; // 100px offset for nav
+
+          // Disable smooth scroll temporarily and use native scroll
+          const originalEase = ease;
+          ease = 1; // Make it instant
+
+          // Set target for smooth scroll
+          target = Math.max(0, targetScroll);
+
+          // Re-enable smooth scroll after a brief moment
+          setTimeout(() => {
+            ease = originalEase;
+          }, 100);
+        }
+      }
+
+      function autoFillContactForm(services, complexity, priority, total) {
+        const messageField = document.getElementById("message");
+        const preFilledMessage = `Hei,
+
+Jeg er interessert i følgende tjenester fra pakkebyggeren:
+
+Valgte tjenester: ${services}
+Kompleksitet: ${complexity}
+Prioritet: ${priority}
+Estimert total: ${total.toLocaleString()} kr
+
+Jeg vil gjerne diskutere prosjektet nærmere og få et detaljert tilbud.
+
+Takk!`;
+
+        messageField.value = preFilledMessage;
+        messageField.style.background = "rgba(37, 99, 235, 0.1)";
+        messageField.style.border = "2px solid var(--accent)";
+
+        // Add a subtle animation to draw attention
+        messageField.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Reset styling after a few seconds
+        setTimeout(() => {
+          messageField.style.background = "rgba(255, 255, 255, 0.1)";
+          messageField.style.border = "1px solid rgba(255, 255, 255, 0.2)";
+        }, 3000);
+      }
+
+      // Initialize package builder
+      document.querySelectorAll(".service-item").forEach((card) => {
+        card.addEventListener("click", function () {
+          toggleService(this);
+        });
+      });
+
+      document.querySelectorAll("[data-complexity]").forEach((option) => {
+        option.addEventListener("click", function () {
+          selectComplexity(this);
+        });
+      });
+
+      document.querySelectorAll("[data-priority]").forEach((option) => {
+        option.addEventListener("click", function () {
+          selectPriority(this);
+        });
+      });
+
+      // Hero canvas animation with Three.js
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById("heroCanvas"),
+        alpha: true,
+        antialias: true,
+      });
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x000000, 0);
+
+      // Create flowing mesh
+      const geometry = new THREE.PlaneGeometry(20, 20, 100, 100);
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          time: { value: 0 },
+          mouse: { value: new THREE.Vector2(0.5, 0.5) },
+        },
+        vertexShader: `
+                uniform float time;
+                uniform vec2 mouse;
+                varying vec2 vUv;
+                varying float vElevation;
+                
+                void main() {
+                    vUv = uv;
+                    vec3 pos = position;
+                    
+                    float elevation = sin(pos.x * 2.0 + time) * 0.1;
+                    elevation += sin(pos.y * 3.0 + time * 1.5) * 0.1;
+                    elevation += sin(distance(pos.xy, mouse * 10.0) - time * 2.0) * 0.2;
+                    
+                    pos.z = elevation;
+                    vElevation = elevation;
+                    
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            `,
+        fragmentShader: `
+                uniform float time;
+                varying vec2 vUv;
+                varying float vElevation;
+                
+                void main() {
+                    float alpha = 0.02 + vElevation * 0.3;
+                    vec3 color = vec3(0.23, 0.51, 0.96);
+                    gl_FragColor = vec4(color, alpha);
+                }
+            `,
+        transparent: true,
+        wireframe: true,
+      });
+
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.z = -2;
+      scene.add(mesh);
+      camera.position.z = 8;
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        material.uniforms.time.value += 0.01;
+        material.uniforms.mouse.value.x = mouseX / window.innerWidth;
+        material.uniforms.mouse.value.y = 1 - mouseY / window.innerHeight;
+
+        mesh.rotation.x = mouseY * 0.00005;
+        mesh.rotation.y = mouseX * 0.00005;
+
+        renderer.render(scene, camera);
+      }
+
+      // Text split animation
+      function splitText(element) {
+        const text = element.textContent;
+        element.innerHTML = "";
+
+        text.split(" ").forEach((word, wordIndex) => {
+          const wordSpan = document.createElement("div");
+          wordSpan.classList.add("word");
+
+          word.split("").forEach((char) => {
+            const charSpan = document.createElement("span");
+            charSpan.classList.add("char");
+            charSpan.textContent = char;
+            wordSpan.appendChild(charSpan);
+          });
+
+          element.appendChild(wordSpan);
+        });
+      }
+
+      // Initialize
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          document.getElementById("loader").classList.add("hide");
+
+          setBodyHeight();
+          smoothScroll();
+          animate();
+
+          const heroTitle = document.querySelector(".hero-title");
+          splitText(heroTitle);
+
+          setTimeout(() => {
+            document
+              .querySelectorAll(".hero-title .char")
+              .forEach((char, i) => {
+                setTimeout(() => {
+                  char.classList.add("animate");
+                }, i * 40);
+              });
+
+            document.querySelector(".hero-subtitle").classList.add("animate");
+            document.querySelector(".hero-cta").classList.add("animate");
+          }, 200);
+        }, 2800);
+      });
+
+      window.addEventListener("resize", () => {
+        setBodyHeight();
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // Reset scroll position if it's beyond the new bounds
+        const maxScroll = document.body.scrollHeight - window.innerHeight;
+        if (window.scrollY > maxScroll) {
+          window.scrollTo(0, Math.max(0, maxScroll));
+        }
+      });
+
+      // Scroll progress
+      window.addEventListener("scroll", () => {
+        const scrolled = window.scrollY;
+        const maxScroll =
+          document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = scrolled / maxScroll;
+        document.getElementById(
+          "scrollProgress"
+        ).style.transform = `scaleX(${scrollPercent})`;
+      });
+
+      // Mobile menu
+      const menuToggle = document.getElementById("menuToggle");
+      const mobileMenu = document.getElementById("mobileMenu");
+
+      menuToggle.addEventListener("click", () => {
+        menuToggle.classList.toggle("active");
+        mobileMenu.classList.toggle("active");
+      });
+
+      document.querySelectorAll(".mobile-menu a").forEach((link) => {
+        link.addEventListener("click", () => {
+          menuToggle.classList.remove("active");
+          mobileMenu.classList.remove("active");
+        });
+      });
+
+      // Animate stats
+      function animateValue(element, start, end, duration, decimals = 1) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+          if (!startTimestamp) startTimestamp = timestamp;
+          const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+          const value = progress * (end - start) + start;
+          element.textContent =
+            decimals > 0 ? value.toFixed(decimals) : Math.floor(value);
+          if (progress < 1) {
+            window.requestAnimationFrame(step);
+          }
+        };
+        window.requestAnimationFrame(step);
+      }
+
+      // Intersection Observer
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -80px 0px",
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (entry.target.classList.contains("section-title")) {
+              entry.target.classList.add("animate");
+              // Trigger animation for section title spans
+              const spans = entry.target.querySelectorAll("span");
+              spans.forEach((span, index) => {
+                setTimeout(() => {
+                  span.style.transform = "translateY(0)";
+                }, index * 100);
+              });
+            } else if (entry.target.classList.contains("liquid-card")) {
+              const cards = document.querySelectorAll(".liquid-card");
+              const index = Array.from(cards).indexOf(entry.target);
+              setTimeout(() => {
+                entry.target.classList.add("animate");
+              }, index * 80);
+            } else if (
+              entry.target.classList.contains("service-card-creative")
+            ) {
+              const delay = parseInt(entry.target.dataset.delay * 1000) || 0;
+              setTimeout(() => {
+                entry.target.classList.add("animate");
+              }, delay);
+            } else if (entry.target.classList.contains("stat-item")) {
+              entry.target.classList.add("animate");
+              const numberElement = entry.target.querySelector(
+                ".stat-number span:first-child"
+              );
+              const value = parseFloat(
+                entry.target.querySelector(".stat-number").dataset.value
+              );
+              const decimals = value < 10 ? 1 : 0;
+              animateValue(numberElement, 0, value, 1800, decimals);
+            }
+          }
+        });
+      }, observerOptions);
+
+      document
+        .querySelectorAll(
+          ".section-title, .liquid-card, .stat-item, .service-card-creative"
+        )
+        .forEach((el) => {
+          observer.observe(el);
+        });
+
+      // Smooth anchor scrolling
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const targetId = this.getAttribute("href");
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            const targetOffset = targetElement.offsetTop - 80;
+            window.scrollTo({
+              top: targetOffset,
+              behavior: "smooth",
+            });
+          }
+        });
+      });
+
+      // Contact form handling
+      document
+        .getElementById("contactFormSubmit")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+
+          const name = document.getElementById("name").value.trim();
+          const email = document.getElementById("email").value.trim();
+          const company = document.getElementById("company").value.trim();
+          const message = document.getElementById("message").value.trim();
+
+          // Validation
+          const errors = [];
+
+          if (!name) {
+            errors.push("Navn er påkrevd");
+            document.getElementById("name").style.borderColor = "#dc2626";
+          } else {
+            document.getElementById("name").style.borderColor =
+              "rgba(255, 255, 255, 0.2)";
+          }
+
+          if (!email) {
+            errors.push("E-post er påkrevd");
+            document.getElementById("email").style.borderColor = "#dc2626";
+          } else if (!isValidEmail(email)) {
+            errors.push("Ugyldig e-post adresse");
+            document.getElementById("email").style.borderColor = "#dc2626";
+          } else {
+            document.getElementById("email").style.borderColor =
+              "rgba(255, 255, 255, 0.2)";
+          }
+
+          if (!message) {
+            errors.push("Melding er påkrevd");
+            document.getElementById("message").style.borderColor = "#dc2626";
+          } else {
+            document.getElementById("message").style.borderColor =
+              "rgba(255, 255, 255, 0.2)";
+          }
+
+          if (errors.length > 0) {
+            // Show error message
+            showFormMessage(
+              "Vennligst fyll ut alle påkrevde felt (*)",
+              "error"
+            );
+            return;
+          }
+
+          // Create email content
+          const subject = encodeURIComponent(
+            "Henvendelse fra " + name + " - Webnet"
+          );
+          const body = encodeURIComponent(`Hei Webnet,
+
+Jeg vil gjerne ta kontakt angående et prosjekt.
+
+KONTAKTINFO:
+Navn: ${name}
+E-post: ${email}
+Bedrift: ${company || "Ikke oppgitt"}
+
+MELDING:
+${message}
+
+Mvh,
+${name}`);
+
+          // Open email client
+          window.location.href = `mailto:webnetfinne@outlook.com?subject=${subject}&body=${body}`;
+
+          // Show success message
+          showFormMessage(
+            "E-post klient åpnet! Takk for henvendelsen.",
+            "success"
+          );
+
+          // Optional: Clear form after successful submission
+          setTimeout(() => {
+            document.getElementById("name").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("company").value = "";
+            document.getElementById("message").value = "";
+          }, 2000);
+        });
+
+      function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      }
+
+      function showFormMessage(message, type) {
+        // Remove existing message
+        const existingMessage = document.querySelector(".form-message");
+        if (existingMessage) {
+          existingMessage.remove();
+        }
+
+        // Create new message
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `form-message form-message-${type}`;
+        messageDiv.textContent = message;
+
+        // Style the message
+        messageDiv.style.cssText = `
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin-bottom: 1rem;
+                font-size: 0.9rem;
+                font-weight: 500;
+                ${
+                  type === "error"
+                    ? "background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2);"
+                    : "background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2);"
+                }
+            `;
+
+        // Insert message before submit button
+        const submitButton = document.getElementById("contactFormSubmit");
+        submitButton.parentNode.insertBefore(messageDiv, submitButton);
+
+        // Remove message after 5 seconds
+        setTimeout(() => {
+          if (messageDiv.parentNode) {
+            messageDiv.remove();
+          }
+        }, 5000);
+      }
+
+      // Initialize default summary
+      updateSummary();
+    </script>
+  </body>
+</html>
