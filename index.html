@@ -3756,30 +3756,19 @@ Takk!`;
             return;
           }
 
-          // Send the form data to the local API server
-          fetch("/api/contact", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ name, email, company, message }),
-          })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("Request failed");
-              }
-              showFormMessage("Henvendelsen er sendt!", "success");
-              document.getElementById("name").value = "";
-              document.getElementById("email").value = "";
-              document.getElementById("company").value = "";
-              document.getElementById("message").value = "";
-            })
-            .catch(() => {
-              showFormMessage(
-                "Noe gikk galt. Pr\u00f8v igjen senere.",
-                "error"
-              );
-            });
+          /* ======== SEND VIA MAILTO ======== */
+          const subject = encodeURIComponent(`Henvendelse fra ${name} \u2013 Webnet`);
+          const body = encodeURIComponent(
+            `Hei Webnet,\n\n${message}\n\n\u2013\u2013\u2013\u2013\u2013\u2013\u2013\u2013\nNavn:    ${name}\nE-post:  ${email}\nBedrift: ${company || "Ikke oppgitt"}\n`
+          );
+
+          window.location.href = `mailto:webnetfinne@outlook.com?subject=${subject}&body=${body}`;
+
+          // Optional success message on the page
+          showFormMessage(
+            "E-postklienten er \u00e5pnet \u2013 husk \u00e5 trykke Send!",
+            "success"
+          );
 
         });
 
