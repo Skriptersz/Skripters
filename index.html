@@ -3387,20 +3387,26 @@
               }
             }, 100);
 
-            // Also open WhatsApp after scrolling
-            const whatsappMessage =
-              encodeURIComponent(`Hei! Jeg vil gjerne ha et tilbud fra Webnet:
-
-Tjenester: ${services}
-Kompleksitet: ${complexityLabels[complexity]}
-Prioritet: ${priorityLabels[priority]}
-Estimert: ${total.toLocaleString()} kr`);
+            // Prepare WhatsApp message
+            const whatsappMessage = `Hei! Jeg vil gjerne ha et tilbud fra Webnet:\n\nTjenester: ${services}\nKompleksitet: ${complexityLabels[complexity]}\nPrioritet: ${priorityLabels[priority]}\nEstimert: ${total.toLocaleString()} kr`;
 
             setTimeout(() => {
-              window.open(
-                `https://wa.me/4795033843?text=${whatsappMessage}`,
-                "_blank"
-              );
+              // Use Web Share API if available
+              if (navigator.share) {
+                navigator
+                  .share({ text: whatsappMessage })
+                  .catch(() => {
+                    window.open(
+                      `https://wa.me/4795033843?text=${encodeURIComponent(whatsappMessage)}`,
+                      "_blank"
+                    );
+                  });
+              } else {
+                window.open(
+                  `https://wa.me/4795033843?text=${encodeURIComponent(whatsappMessage)}`,
+                  "_blank"
+                );
+              }
             }, 1000);
           }
         };
@@ -3796,41 +3802,31 @@ Takk!`;
             return;
           }
 
-          // Create email content
-          const subject = encodeURIComponent(
-            "Henvendelse fra " + name + " - Webnet"
-          );
-          const body = encodeURIComponent(`Hei Webnet,
+          // Send to API endpoint
+          fetch("https://example.com/api/contact", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name, email, company, message }),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Request failed");
+              }
+              showFormMessage("Henvendelsen er sendt!", "success");
+              document.getElementById("name").value = "";
+              document.getElementById("email").value = "";
+              document.getElementById("company").value = "";
+              document.getElementById("message").value = "";
+            })
+            .catch(() => {
+              showFormMessage(
+                "Noe gikk galt. Pr\u00f8v igjen senere.",
+                "error"
+              );
+            });
 
-Jeg vil gjerne ta kontakt angående et prosjekt.
-
-KONTAKTINFO:
-Navn: ${name}
-E-post: ${email}
-Bedrift: ${company || "Ikke oppgitt"}
-
-MELDING:
-${message}
-
-Mvh,
-${name}`);
-
-          // Open email client
-          window.location.href = `mailto:webnetfinne@outlook.com?subject=${subject}&body=${body}`;
-
-          // Show success message
-          showFormMessage(
-            "E-post klient åpnet! Takk for henvendelsen.",
-            "success"
-          );
-
-          // Optional: Clear form after successful submission
-          setTimeout(() => {
-            document.getElementById("name").value = "";
-            document.getElementById("email").value = "";
-            document.getElementById("company").value = "";
-            document.getElementById("message").value = "";
-          }, 2000);
         });
 
       function isValidEmail(email) {
