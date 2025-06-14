@@ -3750,8 +3750,8 @@ Takk!`;
             return;
           }
 
-          // Send to API endpoint
-          fetch("https://example.com/api/contact", {
+          // Send the form data to the local API server
+          fetch("/api/contact", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
