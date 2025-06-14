@@ -3727,8 +3727,16 @@ Takk!`;
       // Smooth anchor scrolling
       document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
         anchor.addEventListener("click", function (e) {
-          e.preventDefault();
           const targetId = this.getAttribute("href");
+
+          // Ignore empty hash links (e.g. href="#") which would
+          // otherwise cause querySelector to throw an error
+          if (!targetId || targetId === "#") {
+            e.preventDefault();
+            return;
+          }
+
+          e.preventDefault();
           const targetElement = document.querySelector(targetId);
           if (targetElement) {
             const targetOffset = targetElement.offsetTop - 80;
